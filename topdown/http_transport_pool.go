@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/gob"
-	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -27,7 +26,7 @@ type HttpTransportPool struct {
 }
 
 func NewPool() *HttpTransportPool {
-	fmt.Printf("New pooll!!!!\n")
+	// TODO: Requires adding some external configuration
 	return &HttpTransportPool{
 		enabled:             true,
 		maxIdleConns:        100,
@@ -45,7 +44,6 @@ func (pool *HttpTransportPool) GetOrCreateTransport(tlsConfig *tls.Config, url *
 	}
 
 	key := connectionParamsKey(tlsConfig, url, parsedQuery)
-	fmt.Printf("key %s\n", key)
 
 	var tr *http.Transport
 	cachedTr, ok := pool.pool.Load(key)
@@ -72,9 +70,9 @@ func (pool *HttpTransportPool) createTransport(tlsConfig *tls.Config, url *url.U
 
 	tr.TLSClientConfig = tlsConfig
 	tr.DisableKeepAlives = !pool.enabled
-	// tr.MaxIdleConns = pool.maxIdleConns
-	// tr.MaxConnsPerHost = pool.maxConnsPerHost
-	// tr.MaxIdleConnsPerHost = pool.maxIdleConnsPerHost
+	tr.MaxIdleConns = pool.maxIdleConns
+	tr.MaxConnsPerHost = pool.maxConnsPerHost
+	tr.MaxIdleConnsPerHost = pool.maxIdleConnsPerHost
 
 	return tr
 }
@@ -85,7 +83,7 @@ func connectionParamsKey(tlsConfig *tls.Config, url *url.URL, parsedQuery *url.V
 	if tlsConfig != nil {
 		var tlsByteBuffer bytes.Buffer
 		encoder := gob.NewEncoder(&tlsByteBuffer)
-		encoder.Encode(tlsConfig)
+		encoder.Encode(tlsConfig.Certificates)
 		keyBuilder.Write(tlsByteBuffer.Bytes())
 
 	}
