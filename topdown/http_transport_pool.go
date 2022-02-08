@@ -43,7 +43,7 @@ func (pool *HttpTransportPool) GetOrCreateTransport(tlsConfig *tls.Config, url *
 		return pool.createTransport(tlsConfig, url, parsedQuery)
 	}
 
-	key := connectionParamsKey(tlsConfig, url, parsedQuery)
+	key := transportPoolKey(tlsConfig, url, parsedQuery)
 
 	var tr *http.Transport
 	cachedTr, ok := pool.pool.Load(key)
@@ -77,7 +77,7 @@ func (pool *HttpTransportPool) createTransport(tlsConfig *tls.Config, url *url.U
 	return tr
 }
 
-func connectionParamsKey(tlsConfig *tls.Config, url *url.URL, parsedQuery *url.Values) string {
+func transportPoolKey(tlsConfig *tls.Config, url *url.URL, parsedQuery *url.Values) string {
 	var keyBuilder strings.Builder
 
 	if tlsConfig != nil {
